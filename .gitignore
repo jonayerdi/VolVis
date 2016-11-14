@@ -1,5 +1,11 @@
 *.class
 
+lib/*
+bin/*
+build/*
+nbproject/*
+set1_data/*
+
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
