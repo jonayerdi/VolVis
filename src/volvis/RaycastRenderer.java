@@ -171,12 +171,12 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     	//We don't show anything (transparent) in voxels below this threshold
     	double drawThreshold = 10.0;
 
-    	// clear image
-        for (int j = 0; j < image.getHeight(); j++) {
-            for (int i = 0; i < image.getWidth(); i++) {
-                image.setRGB(i, j, 0);
-            }
-        }
+    	// clear image (NOT NEEDED?)
+//        for (int j = 0; j < image.getHeight(); j++) {
+//            for (int i = 0; i < image.getWidth(); i++) {
+//                image.setRGB(i, j, 0);
+//            }
+//        }
 
         // vector uVec and vVec define a plane through the origin, 
         // perpendicular to the view vector viewVec
@@ -194,8 +194,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         		, viewVec[1]/viewVecLength, viewVec[2]/viewVecLength);
         
         //The dimension is always equal to the length of the volume diagonal
-        double dim = Math.sqrt(volume.getDimX()*volume.getDimX()
-        		+volume.getDimY()*volume.getDimY()+volume.getDimZ()*volume.getDimZ());
+//        double dim = Math.sqrt(volume.getDimX()*volume.getDimX()
+//        		+volume.getDimY()*volume.getDimY()+volume.getDimZ()*volume.getDimZ());
+        //Already calculated for image dimensions
+        double dim = image.getHeight();
         //Distance between the sample "slices"
         double increment = dim / (double)MIPsamples;
         //Sample "slices" vectors (positive and negative since we start from the center)
