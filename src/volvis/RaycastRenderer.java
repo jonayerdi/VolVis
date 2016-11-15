@@ -166,7 +166,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
     void MIP(double[] viewMatrix) {
     	
-    	int MIPsamples = 30;
+    	int MIPsamples = 100;
+    	double drawThreshold = 10.0;
 
     	// clear image
         for (int j = 0; j < image.getHeight(); j++) {
@@ -185,8 +186,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         VectorMath.setVector(vVec, viewMatrix[1], viewMatrix[5], viewMatrix[9]);
         
         double[] viewVecNorm = new double[3];
-        VectorMath.setVector(viewVecNorm, viewVec[0]/VectorMath.length(viewVec)
-        		, viewVec[1]/VectorMath.length(viewVec), viewVec[2]/VectorMath.length(viewVec));
+        double viewVecLength = VectorMath.length(viewVec);
+        VectorMath.setVector(viewVecNorm, viewVec[0]/viewVecLength
+        		, viewVec[1]/viewVecLength, viewVec[2]/viewVecLength);
         
         double dim = Math.sqrt(Math.pow(volume.getDimX(), 2)
         		+Math.pow(volume.getDimY(), 2)+Math.pow(volume.getDimZ(), 2));
@@ -201,6 +203,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // image is square
         int imageCenter = image.getWidth() / 2;
 
+        double[] pixelCoordCenter = new double[3];
         double[] pixelCoord = new double[3];
         double[] volumeCenter = new double[3];
         VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
@@ -214,13 +217,16 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             for (int i = 0; i < image.getWidth(); i++) {
                 
             	int maxVal = 0;
+            	pixelCoordCenter[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
+                        + volumeCenter[0];
+            	pixelCoordCenter[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
+                        + volumeCenter[1];
+            	pixelCoordCenter[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
+                        + volumeCenter[2];
             	for(int k = 0 ; k < MIPsamples ; k++) {
-            		pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
-                            + volumeCenter[0] + volumeVectors[k][0];
-                    pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
-                            + volumeCenter[1] + volumeVectors[k][1];
-                    pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
-                            + volumeCenter[2] + volumeVectors[k][2];
+            		pixelCoord[0] = pixelCoordCenter[0] + volumeVectors[k][0];
+                    pixelCoord[1] = pixelCoordCenter[1] + volumeVectors[k][1];
+                    pixelCoord[2] = pixelCoordCenter[2] + volumeVectors[k][2];
 
                     int val = getVoxel(pixelCoord);
                     if(val > maxVal) maxVal = val;
@@ -230,7 +236,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 voxelColor.r = maxVal/max;
                 voxelColor.g = voxelColor.r;
                 voxelColor.b = voxelColor.r;
-                voxelColor.a = maxVal > 0 ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
+                voxelColor.a = maxVal > drawThreshold ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
                 // Alternatively, apply the transfer function to obtain a color
                 // voxelColor = tFunc.getColor(val);
                 
