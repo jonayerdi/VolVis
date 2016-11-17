@@ -128,10 +128,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
 
         // sample on a plane through the origin of the volume data
-        double max = volume.getMaximum();
-        TFColor voxelColor = new TFColor();
-
-        
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
                 pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
@@ -143,13 +139,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
                 int val = getVoxel(pixelCoord);
                 
-                // Map the intensity to a grey value by linear scaling
-                voxelColor.r = val/max;
-                voxelColor.g = voxelColor.r;
-                voxelColor.b = voxelColor.r;
-                voxelColor.a = val > 0 ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
-                // Alternatively, apply the transfer function to obtain a color
-                // voxelColor = tFunc.getColor(val);
+             // Apply the transfer function to obtain a color
+            	TFColor voxelColor = new TFColor();
+                voxelColor = tFunc.getColor(val);
+                // Alternatively, map the intensity to a grey value by linear scaling
+//                voxelColor.r = maxVal/volume.getMaximum();
+//                voxelColor.g = voxelColor.r;
+//                voxelColor.b = voxelColor.r;
+//                voxelColor.a = val > 0 ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
                 
                 
                 // BufferedImage expects a pixel color packed as ARGB in an int
@@ -168,8 +165,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     	
     	//Number of sample "slices" to take for the MIP
     	int MIPsamples = 100;
-    	//We don't show anything (transparent) in voxels below this threshold
-    	double drawThreshold = 10.0;
 
     	// clear image (NOT NEEDED?)
 //        for (int j = 0; j < image.getHeight(); j++) {
@@ -217,9 +212,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
 
         // sample on a plane through the origin of the volume data
-        double max = volume.getMaximum();
-        TFColor voxelColor = new TFColor();
-
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
                 
@@ -241,13 +233,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     if(val > maxVal) maxVal = val;
             	}
                 
-                // Map the intensity to a grey value by linear scaling
-                voxelColor.r = maxVal/max;
-                voxelColor.g = voxelColor.r;
-                voxelColor.b = voxelColor.r;
-                voxelColor.a = maxVal > drawThreshold ? 1.0 : 0.0;  // this makes intensity below drawThreshold completely transparent and the rest opaque
-                // Alternatively, apply the transfer function to obtain a color
-                // voxelColor = tFunc.getColor(val);
+                // Apply the transfer function to obtain a color
+            	TFColor voxelColor = new TFColor();
+                voxelColor = tFunc.getColor(maxVal);
+                // Alternatively, map the intensity to a grey value by linear scaling
+//                voxelColor.r = maxVal/volume.getMaximum();
+//                voxelColor.g = voxelColor.r;
+//                voxelColor.b = voxelColor.r;
+//                voxelColor.a = maxVal > 0 ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
                 
                 // BufferedImage expects a pixel color packed as ARGB in an int
                 int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
