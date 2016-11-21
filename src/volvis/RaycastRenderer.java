@@ -164,7 +164,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     void MIP(double[] viewMatrix) {
     	
     	//Number of sample "slices" to take for the MIP
-    	int MIPsamples = 100;
+    	int MIPsamples = image.getHeight();
 
     	// clear image (NOT NEEDED?)
 //        for (int j = 0; j < image.getHeight(); j++) {
