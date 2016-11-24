@@ -99,11 +99,37 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             return 0;
         }
 
-        int x = (int) Math.floor(coord[0]);
-        int y = (int) Math.floor(coord[1]);
-        int z = (int) Math.floor(coord[2]);
+        int xMin = (int) Math.floor(coord[0]);
+        int yMin = (int) Math.floor(coord[1]);
+        int zMin = (int) Math.floor(coord[2]);
+        int xMax = xMin+1;
+        int yMax = yMin+1;
+        int zMax = zMin+1;
+        
+        double x0 = coord[0] - Math.floor(coord[0]);
+        double y0 = coord[1] - Math.floor(coord[1]);
+        double z0 = coord[2] - Math.floor(coord[2]);
 
-        return volume.getVoxel(x, y, z);
+        double c000 =  volume.getVoxel(xMin, yMin, zMin);
+        double c100 =  volume.getVoxel(xMax, yMin, zMin);
+        double c110 =  volume.getVoxel(xMax, yMax, zMin);
+        double c010 =  volume.getVoxel(xMin, yMax, zMin);
+        double c001 =  volume.getVoxel(xMin, yMin, zMax);
+        double c101 =  volume.getVoxel(xMax, yMin, zMax);
+        double c111 =  volume.getVoxel(xMax, yMax, zMax);
+        double c011 =  volume.getVoxel(xMin, yMax, zMax);
+        
+        double c00 = (c100-c000)*x0 + c000;
+        double c01 = (c101-c001)*x0 + c001;
+        double c10 = (c110-c010)*x0 + c010;
+        double c11 = (c111-c011)*x0 + c011;
+        
+        double c0 = (c10-c00)*y0 + c00;
+        double c1 = (c11-c01)*y0 + c01;
+        
+        double c = (c1-c0)*z0 + c0;
+        
+        return (short) Math.round(c);
     }
 
     void slicer(double[] viewMatrix) {
@@ -168,7 +194,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     void MIP(double[] viewMatrix) {
     	
     	//Number of sample "slices" to take for the MIP
-    	int MIPsamples = image.getHeight();
+    	int MIPsamples = image.getHeight()/2;
 
     	// clear image (NOT NEEDED?)
 //        for (int j = 0; j < image.getHeight(); j++) {
@@ -261,7 +287,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     void compositing(double[] viewMatrix) {
     	
     	//Number of sample "slices" to take for the MIP
-    	int samples = image.getHeight()/2;
+    	int samples = image.getHeight()/4;
 
         // vector uVec and vVec define a plane through the origin, 
         // perpendicular to the view vector viewVec
