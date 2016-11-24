@@ -335,7 +335,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     public TFColor nextColor(TFColor current, TFColor next) {
     	TFColor newColor = new TFColor();
-    	newColor.a = 1.0;
     	newColor.r = next.a*next.r + (1-next.a)*current.r;
     	newColor.g = next.a*next.g + (1-next.a)*current.g;
     	newColor.b = next.a*next.b + (1-next.a)*current.b;
