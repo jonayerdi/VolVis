@@ -25,6 +25,10 @@ import volume.Volume;
  * @author michel
  */
 public class RaycastRenderer extends Renderer implements TFChangeListener {
+	
+	public static final int SLICER_MODE = 0;
+	public static final int MIP_MODE = 1;
+	public static final int COMPOSITING_MODE = 2;
 
     private Volume volume = null;
     private GradientVolume gradients = null;
@@ -253,6 +257,90 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
         
     }
+    
+    void compositing(double[] viewMatrix) {
+    	
+    	//Number of sample "slices" to take for the MIP
+    	int samples = image.getHeight()/2;
+
+        // vector uVec and vVec define a plane through the origin, 
+        // perpendicular to the view vector viewVec
+        double[] viewVec = new double[3];
+        double[] uVec = new double[3];
+        double[] vVec = new double[3];
+        VectorMath.setVector(viewVec, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
+        VectorMath.setVector(uVec, viewMatrix[0], viewMatrix[4], viewMatrix[8]);
+        VectorMath.setVector(vVec, viewMatrix[1], viewMatrix[5], viewMatrix[9]);
+        
+        //Normalize the view vector
+        double[] viewVecNorm = new double[3];
+        double viewVecLength = VectorMath.length(viewVec);
+        VectorMath.setVector(viewVecNorm, viewVec[0]/viewVecLength
+        		, viewVec[1]/viewVecLength, viewVec[2]/viewVecLength);
+        
+        //Already calculated for image dimensions
+        double dim = image.getHeight();
+        //Distance between the sample "slices"
+        double increment = dim / (double)samples;
+        //Sample "slices" vectors (positive and negative since we start from the center)
+        double[][] volumeVectors = new double[samples][3];
+        for(int i = samples-1 ; i >= 0 ; i--) {
+        	volumeVectors[i][0] = viewVecNorm[0] * ((i*increment)-(dim/2));
+        	volumeVectors[i][1] = viewVecNorm[1] * ((i*increment)-(dim/2));
+        	volumeVectors[i][2] = viewVecNorm[2] * ((i*increment)-(dim/2));
+        }
+
+        // image is square
+        int imageCenter = image.getWidth() / 2;
+
+        double[] pixelCoordCenter = new double[3];
+        double[] pixelCoord = new double[3];
+        double[] volumeCenter = new double[3];
+        VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
+
+        // sample on a plane through the origin of the volume data
+        for (int j = 0; j < image.getHeight(); j++) {
+            for (int i = 0; i < image.getWidth(); i++) {
+                
+            	TFColor voxelColor = tFunc.getColor(0);
+            	//Slice in the center
+            	pixelCoordCenter[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
+                        + volumeCenter[0];
+            	pixelCoordCenter[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
+                        + volumeCenter[1];
+            	pixelCoordCenter[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
+                        + volumeCenter[2];
+            	//Calculate the different slices based on the center and the slice vectors
+            	for(int k = 0 ; k < samples ; k++) {
+            		pixelCoord[0] = pixelCoordCenter[0] + volumeVectors[k][0];
+                    pixelCoord[1] = pixelCoordCenter[1] + volumeVectors[k][1];
+                    pixelCoord[2] = pixelCoordCenter[2] + volumeVectors[k][2];
+
+                    int val = getVoxel(pixelCoord);
+                    // Apply the transfer function to obtain a color
+                    voxelColor = nextColor(voxelColor, tFunc.getColor(val));
+            	}
+                
+                // BufferedImage expects a pixel color packed as ARGB in an int
+                int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
+                int c_red = voxelColor.r <= 1.0 ? (int) Math.floor(voxelColor.r * 255) : 255;
+                int c_green = voxelColor.g <= 1.0 ? (int) Math.floor(voxelColor.g * 255) : 255;
+                int c_blue = voxelColor.b <= 1.0 ? (int) Math.floor(voxelColor.b * 255) : 255;
+                int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
+                image.setRGB(i, j, pixelColor);
+            }
+        }
+        
+    }
+    
+    public TFColor nextColor(TFColor current, TFColor next) {
+    	TFColor newColor = new TFColor();
+    	newColor.a = 1.0;
+    	newColor.r = next.a*next.r + (1-next.a)*current.r;
+    	newColor.g = next.a*next.g + (1-next.a)*current.g;
+    	newColor.b = next.a*next.b + (1-next.a)*current.b;
+    	return newColor;
+    }
 
     private void drawBoundingBox(GL2 gl) {
         gl.glPushAttrib(GL2.GL_CURRENT_BIT);
@@ -327,11 +415,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         long startTime = System.currentTimeMillis();
         switch(mode) {
-        case 0:
+        case SLICER_MODE:
         	slicer(viewMatrix);   
         	break;
-        case 1:
+        case MIP_MODE:
         	MIP(viewMatrix);   
+        	break;
+        case COMPOSITING_MODE:
+        	compositing(viewMatrix);   
         	break;
         default:
         	slicer(viewMatrix);
