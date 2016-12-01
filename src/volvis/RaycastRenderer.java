@@ -363,6 +363,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
     }
     
+    //Calculate next color for compositing from the current color and the next color in front
     public TFColor nextColor(TFColor current, TFColor next) {
     	TFColor newColor = new TFColor();
     	newColor.r = next.a*next.r + (1-next.a)*current.r;
