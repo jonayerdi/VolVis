@@ -35,6 +35,13 @@ public class Volume {
         
     }
     
+    public boolean isWithinBounds(int x, int y, int z) {
+    	return x>=0 && y>=0 && z>=0 && x<dimX && y<dimY && z<dimZ;
+    }
+    
+    public boolean isWithinBounds(double x, double y, double z) {
+    	return x>=0 && y>=0 && z>=0 && x<dimX && y<dimY && z<dimZ;
+    }
     
     public short getVoxel(int x, int y, int z) {
     	int index = x + dimX*(y + dimY * z);

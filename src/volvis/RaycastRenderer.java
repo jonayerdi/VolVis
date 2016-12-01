@@ -376,7 +376,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     void transfer2D(double[] viewMatrix) {
     	//Number of sample "slices" to take for the MIP
-    	int samples = image.getHeight()/10;
+    	int samples = image.getHeight()/2;
 
         // vector uVec and vVec define a plane through the origin, 
         // perpendicular to the view vector viewVec
@@ -431,11 +431,13 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     pixelCoord[1] = pixelCoordCenter[1] + sliceVector[1];
                     pixelCoord[2] = pixelCoordCenter[2] + sliceVector[2];
 
-                    int val = getVoxel(pixelCoord);
-                    //Get alpha for the current slice
-                    double currentAlpha = getAlphaTfEditor2D(pixelCoord, val);
-                    //Compute total alpha
-                    alpha *= 1-currentAlpha;
+                    if(volume.isWithinBounds(pixelCoord[0], pixelCoord[1], pixelCoord[2])) {
+                    	int val = getVoxel(pixelCoord);
+                        //Get alpha for the current slice
+                        double currentAlpha = getAlphaTfEditor2D(pixelCoord, val);
+                        //Compute total alpha
+                        alpha *= 1-currentAlpha;
+                    }
             	}
                 
             	//Compute final alpha: alpha = 1 - sum(1 - currentAlpha)
@@ -460,7 +462,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     	//Base intensity
     	double fv = tfEditor2D.triangleWidget.baseIntensity;
     	//Abs of gradient for p
-    	double df = Math.abs(tfEditor2D.gradvol.getGradient((int)p[0], (int)p[1], (int)p[2]).mag);
+    	double df = Math.abs(tfEditor2D.gradvol.getGradient(p[0], p[1], p[2]).mag);
     	//Radius
     	double r = tfEditor2D.triangleWidget.radius;
     	double alpha;
