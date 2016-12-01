@@ -91,7 +91,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         return tfEditor;
     }
      
-
+    //Gets the voxel value at the specified coordinates through interpolation
+    //See https://en.wikipedia.org/wiki/Trilinear_interpolation#Method
     short getVoxel(double[] coord) {
 
         if (coord[0] < 0 || coord[0] > volume.getDimX() || coord[1] < 0 || coord[1] > volume.getDimY()
@@ -109,7 +110,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double x0 = coord[0] - Math.floor(coord[0]);
         double y0 = coord[1] - Math.floor(coord[1]);
         double z0 = coord[2] - Math.floor(coord[2]);
-
+        
+        //Get the 8 surrounding points
         double c000 =  volume.getVoxel(xMin, yMin, zMin);
         double c100 =  volume.getVoxel(xMax, yMin, zMin);
         double c110 =  volume.getVoxel(xMax, yMax, zMin);
@@ -119,14 +121,17 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double c111 =  volume.getVoxel(xMax, yMax, zMax);
         double c011 =  volume.getVoxel(xMin, yMax, zMax);
         
+        //Interpolate 4 surrounding points on the final x
         double c00 = (c100-c000)*x0 + c000;
         double c01 = (c101-c001)*x0 + c001;
         double c10 = (c110-c010)*x0 + c010;
         double c11 = (c111-c011)*x0 + c011;
         
+        //Interpolate 2 surrounding points on the final x and y
         double c0 = (c10-c00)*y0 + c00;
         double c1 = (c11-c01)*y0 + c01;
         
+        //Interpolate final point
         double c = (c1-c0)*z0 + c0;
         
         return (short) Math.round(c);
