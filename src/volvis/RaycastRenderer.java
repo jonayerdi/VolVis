@@ -230,13 +230,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double dim = image.getHeight();
         //Distance between the sample "slices"
         double increment = dim / (double)MIPsamples;
-        //Sample "slices" vectors (positive and negative since we start from the center)
-        double[][] volumeVectors = new double[MIPsamples][3];
-        for(int i = 0 ; i < MIPsamples ; i++) {
-        	volumeVectors[i][0] = viewVecNorm[0] * ((i*increment)-(dim/2));
-        	volumeVectors[i][1] = viewVecNorm[1] * ((i*increment)-(dim/2));
-        	volumeVectors[i][2] = viewVecNorm[2] * ((i*increment)-(dim/2));
-        }
 
         // image is square
         int imageCenter = image.getWidth() / 2;
@@ -258,11 +251,18 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                         + volumeCenter[1];
             	pixelCoordCenter[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
                         + volumeCenter[2];
+            	                
             	//Calculate the different slices based on the center and the slice vectors
             	for(int k = 0 ; k < MIPsamples ; k++) {
-            		pixelCoord[0] = pixelCoordCenter[0] + volumeVectors[k][0];
-                    pixelCoord[1] = pixelCoordCenter[1] + volumeVectors[k][1];
-                    pixelCoord[2] = pixelCoordCenter[2] + volumeVectors[k][2];
+            		//Vector from the center to the slice
+            		double[] sliceVector = new double[3];
+            		sliceVector[0] = viewVecNorm[0] * ((k*increment)-(dim/2));
+            		sliceVector[1] = viewVecNorm[1] * ((k*increment)-(dim/2));
+            		sliceVector[2] = viewVecNorm[2] * ((k*increment)-(dim/2));
+                	
+            		pixelCoord[0] = pixelCoordCenter[0] + sliceVector[0];
+                    pixelCoord[1] = pixelCoordCenter[1] + sliceVector[1];
+                    pixelCoord[2] = pixelCoordCenter[2] + sliceVector[2];
 
                     int val = getVoxel(pixelCoord);
                     if(val > maxVal) maxVal = val;
@@ -313,13 +313,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double dim = image.getHeight();
         //Distance between the sample "slices"
         double increment = dim / (double)samples;
-        //Sample "slices" vectors (positive and negative since we start from the center)
-        double[][] volumeVectors = new double[samples][3];
-        for(int i = samples-1 ; i >= 0 ; i--) {
-        	volumeVectors[i][0] = viewVecNorm[0] * ((i*increment)-(dim/2));
-        	volumeVectors[i][1] = viewVecNorm[1] * ((i*increment)-(dim/2));
-        	volumeVectors[i][2] = viewVecNorm[2] * ((i*increment)-(dim/2));
-        }
 
         // image is square
         int imageCenter = image.getWidth() / 2;
@@ -343,9 +336,15 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                         + volumeCenter[2];
             	//Calculate the different slices based on the center and the slice vectors
             	for(int k = 0 ; k < samples ; k++) {
-            		pixelCoord[0] = pixelCoordCenter[0] + volumeVectors[k][0];
-                    pixelCoord[1] = pixelCoordCenter[1] + volumeVectors[k][1];
-                    pixelCoord[2] = pixelCoordCenter[2] + volumeVectors[k][2];
+            		//Vector from the center to the slice
+            		double[] sliceVector = new double[3];
+            		sliceVector[0] = viewVecNorm[0] * ((k*increment)-(dim/2));
+            		sliceVector[1] = viewVecNorm[1] * ((k*increment)-(dim/2));
+            		sliceVector[2] = viewVecNorm[2] * ((k*increment)-(dim/2));
+                	
+            		pixelCoord[0] = pixelCoordCenter[0] + sliceVector[0];
+                    pixelCoord[1] = pixelCoordCenter[1] + sliceVector[1];
+                    pixelCoord[2] = pixelCoordCenter[2] + sliceVector[2];
 
                     int val = getVoxel(pixelCoord);
                     // Apply the transfer function to obtain a color
