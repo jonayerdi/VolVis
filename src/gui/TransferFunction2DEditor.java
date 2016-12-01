@@ -22,7 +22,7 @@ import volvis.TFColor;
 public class TransferFunction2DEditor extends javax.swing.JPanel {
 
     private Volume vol;
-    private GradientVolume gradvol;
+    public GradientVolume gradvol;
     private TransferFunction2DView tfView;
     public TriangleWidget triangleWidget;
     public int xbins, ybins;

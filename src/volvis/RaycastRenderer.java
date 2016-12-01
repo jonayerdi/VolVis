@@ -365,9 +365,18 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
     }
     
+  //Calculate next color for compositing from the current color and the next color in front
+    public TFColor nextColor(TFColor current, TFColor next) {
+    	TFColor newColor = new TFColor();
+    	newColor.r = next.a*next.r + (1-next.a)*current.r;
+    	newColor.g = next.a*next.g + (1-next.a)*current.g;
+    	newColor.b = next.a*next.b + (1-next.a)*current.b;
+    	return newColor;
+    }
+    
     void transfer2D(double[] viewMatrix) {
     	//Number of sample "slices" to take for the MIP
-    	int samples = image.getHeight()/4;
+    	int samples = image.getHeight()/10;
 
         // vector uVec and vVec define a plane through the origin, 
         // perpendicular to the view vector viewVec
@@ -401,7 +410,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
                 
-            	TFColor voxelColor = tFunc.getColor(0);
+            	TFColor voxelColor = tfEditor2D.triangleWidget.color;
+            	double alpha = 1.0;
             	//Slice in the center
             	pixelCoordCenter[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                         + volumeCenter[0];
@@ -422,10 +432,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     pixelCoord[2] = pixelCoordCenter[2] + sliceVector[2];
 
                     int val = getVoxel(pixelCoord);
-                    // Apply the transfer function to obtain a color
-                    voxelColor = nextColor(voxelColor, tFunc.getColor(val));
+                    //Get alpha for the current slice
+                    double currentAlpha = getAlphaTfEditor2D(pixelCoord, val);
+                    //Compute total alpha
+                    alpha *= 1-currentAlpha;
             	}
                 
+            	//Compute final alpha: alpha = 1 - sum(1 - currentAlpha)
+            	voxelColor.a = 1 - alpha;
                 // BufferedImage expects a pixel color packed as ARGB in an int
                 int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
                 int c_red = voxelColor.r <= 1.0 ? (int) Math.floor(voxelColor.r * 255) : 255;
@@ -437,13 +451,26 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
     }
     
-    //Calculate next color for compositing from the current color and the next color in front
-    public TFColor nextColor(TFColor current, TFColor next) {
-    	TFColor newColor = new TFColor();
-    	newColor.r = next.a*next.r + (1-next.a)*current.r;
-    	newColor.g = next.a*next.g + (1-next.a)*current.g;
-    	newColor.b = next.a*next.b + (1-next.a)*current.b;
-    	return newColor;
+    //Get alpha for 2D transfer function
+    //https://graphics.stanford.edu/papers/volume-cga88/volume.pdf
+    //Isovalue contour surfaces
+    public double getAlphaTfEditor2D(double[] p, int val) {
+    	//Current intensity
+    	double f = val;
+    	//Base intensity
+    	double fv = tfEditor2D.triangleWidget.baseIntensity;
+    	//Abs of gradient for p
+    	double df = Math.abs(tfEditor2D.gradvol.getGradient(p[0], p[1], p[2]).mag);
+    	//Radius
+    	double r = tfEditor2D.triangleWidget.radius;
+    	double alpha;
+    	if(df == 0 && f == fv)
+    		alpha = 1;
+    	else if(df > 0 && f-r*df <= fv && fv <= f+r*df)
+    		alpha = 1 - ((1/r)*Math.abs((fv-f)/(df)));
+    	else
+    		alpha = 0;
+    	return alpha;
     }
 
     private void drawBoundingBox(GL2 gl) {
