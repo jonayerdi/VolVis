@@ -23,7 +23,6 @@ public class TransferFunction {
         controlPoints = new ArrayList<ControlPoint>();
 
         controlPoints.add(new ControlPoint(min, new TFColor(0.0, 0.0, 0.0, 0.0)));
-        controlPoints.add(new ControlPoint((max+min)/2, new TFColor(1.0, 1.0, 1.0, 0.6)));
         controlPoints.add(new ControlPoint(max, new TFColor(1.0, 1.0, 1.0, 1.0)));
 
         LUTsize = sRange;

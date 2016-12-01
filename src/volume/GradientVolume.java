@@ -55,9 +55,9 @@ public class GradientVolume {
         for(int x = 0 ; x < dimX ; x++) {
         	for(int y = 0 ; y < dimY ; y++) {
         		for(int z = 0 ; z < dimZ ; z++) {
-        			float gradX = x==0 ? 0 : volume.getVoxel(x, y, z) - volume.getVoxel(x-1, y, z);
-        			float gradY = y==0 ? 0 : volume.getVoxel(x, y, z) - volume.getVoxel(x, y-1, z);
-        			float gradZ = z==0 ? 0 : volume.getVoxel(x, y, z) - volume.getVoxel(x, y, z-1);
+        			float gradX = x==0 || x==dimX-1 ? 0 : (float)(volume.getVoxel(x+1, y, z) - volume.getVoxel(x-1, y, z))/2;
+        			float gradY = y==0 || y==dimY-1 ? 0 : (float)(volume.getVoxel(x, y+1, z) - volume.getVoxel(x, y-1, z))/2;
+        			float gradZ = z==0 || z==dimZ-1 ? 0 : (float)(volume.getVoxel(x, y, z+1) - volume.getVoxel(x, y, z-1))/2;
         			VoxelGradient grad = new VoxelGradient(gradX,gradY,gradZ);
         			setGradient(x, y, z, grad);
         			if(grad.mag > maxmag) maxmag = grad.mag;
