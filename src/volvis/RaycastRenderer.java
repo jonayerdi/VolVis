@@ -460,7 +460,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     	//Base intensity
     	double fv = tfEditor2D.triangleWidget.baseIntensity;
     	//Abs of gradient for p
-    	double df = Math.abs(tfEditor2D.gradvol.getGradient(p[0], p[1], p[2]).mag);
+    	double df = Math.abs(tfEditor2D.gradvol.getGradient((int)p[0], (int)p[1], (int)p[2]).mag);
     	//Radius
     	double r = tfEditor2D.triangleWidget.radius;
     	double alpha;
