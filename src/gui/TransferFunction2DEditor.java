@@ -7,8 +7,11 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.event.FocusEvent;
 import java.util.ArrayList;
+
 import javax.swing.JColorChooser;
+
 import util.TFChangeListener;
 import volume.GradientVolume;
 import volume.Volume;
@@ -162,10 +165,11 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
 
         opacityLabel.setText("jTextField2");
         opacityLabel.setMinimumSize(new java.awt.Dimension(84, 28));
-        opacityLabel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                opacityLabelActionPerformed(evt);
-            }
+        opacityLabel.addFocusListener(new java.awt.event.FocusListener() {
+			public void focusGained(FocusEvent e) {}
+			public void focusLost(FocusEvent e) {
+				opacityLabelActionPerformed(e);
+			}
         });
 
         intensityLabel.setEditable(false);
@@ -268,7 +272,7 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_colorButtonActionPerformed
 
-    private void opacityLabelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_opacityLabelActionPerformed
+    private void opacityLabelActionPerformed(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_opacityLabelActionPerformed
         try {
             double value = Double.parseDouble(opacityLabel.getText());
             if (value < 0) {

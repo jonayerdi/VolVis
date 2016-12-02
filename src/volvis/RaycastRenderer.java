@@ -376,7 +376,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     void transfer2D(double[] viewMatrix) {
     	//Number of sample "slices" to take
-    	int samples = image.getHeight()/4;
+    	int samples = image.getHeight();
 
         // vector uVec and vVec define a plane through the origin, 
         // perpendicular to the view vector viewVec
