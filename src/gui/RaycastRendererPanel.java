@@ -4,7 +4,10 @@
  */
 package gui;
 
+import java.awt.event.FocusEvent;
+
 import javax.swing.JOptionPane;
+
 import volvis.RaycastRenderer;
 
 /**
@@ -47,10 +50,13 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
         compositingButton = new javax.swing.JRadioButton();
         tf2dButton = new javax.swing.JRadioButton();
         shadingCheckbox = new javax.swing.JCheckBox();
+        labelSlices = new javax.swing.JLabel();
+        slicesLabel = new javax.swing.JTextField();
 
         jLabel1.setText("Rendering time (ms):");
 
         renderingSpeedLabel.setText("jLabel2");
+        labelSlices.setText("Slices:");
 
         buttonGroup1.add(slicerButton);
         slicerButton.setSelected(true);
@@ -91,6 +97,27 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                 shadingCheckboxActionPerformed(evt);
             }
         });
+        
+        slicesLabel.setMinimumSize(new java.awt.Dimension(84, 28));
+        slicesLabel.setText("100");
+        slicesLabel.addFocusListener(new java.awt.event.FocusListener() {
+			public void focusGained(FocusEvent arg0) {}
+			public void focusLost(FocusEvent arg0) {
+				int slices = 100;
+				try {
+					slices = Integer.valueOf(slicesLabel.getText());
+		            if (slices < 50) {
+		            	slices = 50;
+		            } 
+		            if (slices > renderer.getSize()) {
+		            	slices = renderer.getSize();
+		            }
+				} catch(Exception e) {}
+				slicesLabel.setText(String.valueOf(slices));
+				renderer.setSlices(slices);
+		    	renderer.changed();
+			}
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -108,7 +135,10 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                         .addComponent(tf2dButton)
                         .addComponent(mipButton)
                         .addComponent(slicerButton)
-                        .addComponent(shadingCheckbox)))
+                        .addComponent(labelSlices)
+                        .addComponent(shadingCheckbox))
+                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                     	.addComponent(slicesLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(339, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -128,6 +158,10 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
                 .addComponent(tf2dButton)
                 .addGap(18, 18, 18)
                 .addComponent(shadingCheckbox)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                	.addComponent(labelSlices)
+                	.addComponent(slicesLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(137, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -166,5 +200,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     private javax.swing.JCheckBox shadingCheckbox;
     private javax.swing.JRadioButton slicerButton;
     private javax.swing.JRadioButton tf2dButton;
+    private javax.swing.JLabel labelSlices;
+    private javax.swing.JTextField slicesLabel;
     // End of variables declaration//GEN-END:variables
 }

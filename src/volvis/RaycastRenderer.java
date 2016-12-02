@@ -39,6 +39,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     TransferFunction2DEditor tfEditor2D;
     private int mode = 0;
     private boolean shading = false;
+    private int slices = 100;
     
     public RaycastRenderer() {
         panel = new RaycastRendererPanel(this);
@@ -52,6 +53,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     public void setShading(boolean shading) {
     	this.shading = shading;
     }
+    
+    public void setSlices(int slices) {
+		this.slices = slices;
+	}
 
     public void setVolume(Volume vol) {
         System.out.println("Assigning volume");
@@ -204,7 +209,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
     void MIP(double[] viewMatrix) {
     	//Number of sample "slices" to take for the MIP
-    	int MIPsamples = image.getHeight()/2;
+    	int MIPsamples = slices;
 
     	// clear image (NOT NEEDED?)
 //        for (int j = 0; j < image.getHeight(); j++) {
@@ -295,7 +300,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     void compositing(double[] viewMatrix) {
     	//Number of sample "slices" to take
-    	int samples = image.getHeight()/4;
+    	int samples = slices;
 
         // vector uVec and vVec define a plane through the origin, 
         // perpendicular to the view vector viewVec
@@ -376,7 +381,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     void transfer2D(double[] viewMatrix) {
     	//Number of sample "slices" to take
-    	int samples = image.getHeight();
+    	int samples = slices;
 
         // vector uVec and vVec define a plane through the origin, 
         // perpendicular to the view vector viewVec
@@ -606,6 +611,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
     private BufferedImage image;
     private double[] viewMatrix = new double[4 * 4];
+    
+    public int getSize() {
+    	return image.getHeight();
+    }
 
     @Override
     public void changed() {
@@ -613,4 +622,5 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             listeners.get(i).changed();
         }
     }
+
 }
