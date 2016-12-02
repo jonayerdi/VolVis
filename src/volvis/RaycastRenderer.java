@@ -294,7 +294,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
     
     void compositing(double[] viewMatrix) {
-    	//Number of sample "slices" to take for the MIP
+    	//Number of sample "slices" to take
     	int samples = image.getHeight()/4;
 
         // vector uVec and vVec define a plane through the origin, 
@@ -375,8 +375,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
     
     void transfer2D(double[] viewMatrix) {
-    	//Number of sample "slices" to take for the MIP
-    	int samples = image.getHeight()/2;
+    	//Number of sample "slices" to take
+    	int samples = image.getHeight()/4;
 
         // vector uVec and vVec define a plane through the origin, 
         // perpendicular to the view vector viewVec
@@ -441,9 +441,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             	}
                 
             	//Compute final alpha: alpha = 1 - sum(1 - currentAlpha)
-            	voxelColor.a = 1 - alpha;
+            	alpha = 1 - alpha;
                 // BufferedImage expects a pixel color packed as ARGB in an int
-                int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
+                int c_alpha = alpha <= 1.0 ? (int) Math.floor(alpha * 255) : 255;
                 int c_red = voxelColor.r <= 1.0 ? (int) Math.floor(voxelColor.r * 255) : 255;
                 int c_green = voxelColor.g <= 1.0 ? (int) Math.floor(voxelColor.g * 255) : 255;
                 int c_blue = voxelColor.b <= 1.0 ? (int) Math.floor(voxelColor.b * 255) : 255;
@@ -472,7 +472,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     		alpha = 1 - ((1/r)*Math.abs((fv-f)/(df)));
     	else
     		alpha = 0;
-    	return alpha;
+    	return alpha*tfEditor2D.triangleWidget.color.a;
     }
 
     private void drawBoundingBox(GL2 gl) {
@@ -536,7 +536,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
     @Override
     public void visualize(GL2 gl) {
-
 
         if (volume == null) {
             return;
