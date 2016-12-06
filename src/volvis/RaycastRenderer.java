@@ -445,7 +445,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     }
             	}
                 
-            	//Compute final alpha: alpha = 1 - sum(1 - currentAlpha)
+            	//Compute final alpha: alpha = 1 - product(1 - currentAlpha)
             	alpha = 1 - alpha;
                 // BufferedImage expects a pixel color packed as ARGB in an int
                 int c_alpha = alpha <= 1.0 ? (int) Math.floor(alpha * 255) : 255;
@@ -458,7 +458,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
     }
     
-    //Get alpha for 2D transfer function
+    //Get alpha for 2D transfer function using Levoy's method
     //https://graphics.stanford.edu/papers/volume-cga88/volume.pdf
     //Isovalue contour surfaces
     public double getAlphaTfEditor2D(double[] p, int val) {
