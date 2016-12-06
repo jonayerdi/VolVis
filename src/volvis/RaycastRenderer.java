@@ -19,6 +19,7 @@ import util.TFChangeListener;
 import util.VectorMath;
 import volume.GradientVolume;
 import volume.Volume;
+import volume.VoxelGradient;
 
 /**
  *
@@ -30,6 +31,13 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 	public static final int MIP_MODE = 1;
 	public static final int COMPOSITING_MODE = 2;
 	public static final int TRANSFER_2D_MODE = 3;
+	
+	//Phong shading model
+	//Ia = 0.1 ; kdiff = 0.7 ; kspec = 0.2 ; a = 10
+	public static final double Ia = 0.1;
+	public static final double kdiff = 0.7;
+	public static final double kspec = 0.2;
+	public static final int a = 10;
 
     private Volume volume = null;
     private GradientVolume gradients = null;
@@ -415,7 +423,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
                 
-            	TFColor voxelColor = tfEditor2D.triangleWidget.color;
+            	TFColor voxelColor = TFColor.clone(tfEditor2D.triangleWidget.color);
             	double alpha = 1.0;
             	//Slice in the center
             	pixelCoordCenter[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
@@ -447,8 +455,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 
             	//Compute final alpha: alpha = 1 - product(1 - currentAlpha)
             	alpha = 1 - alpha;
+            	voxelColor.a = alpha;
                 // BufferedImage expects a pixel color packed as ARGB in an int
-                int c_alpha = alpha <= 1.0 ? (int) Math.floor(alpha * 255) : 255;
+                int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
                 int c_red = voxelColor.r <= 1.0 ? (int) Math.floor(voxelColor.r * 255) : 255;
                 int c_green = voxelColor.g <= 1.0 ? (int) Math.floor(voxelColor.g * 255) : 255;
                 int c_blue = voxelColor.b <= 1.0 ? (int) Math.floor(voxelColor.b * 255) : 255;
@@ -481,6 +490,39 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     	else
     		alpha = 0;
     	return alpha*tfEditor2D.triangleWidget.color.a;
+    }
+    
+    //Simplified Phong shading implementation with headlight (L = V)
+    //Ia = 0.1 ; kdiff = 0.7 ; kspec = 0.2 ; a = 10
+    //I = Ia + Id*kdiff*(V*N)+ kspec*(V*N)^a
+    public TFColor shading(double[] v, double[] p, TFColor color) {
+    	//Gradient for p
+    	VoxelGradient grad = tfEditor2D.gradvol.getGradient(p[0], p[1], p[2]);
+    	//Normalize the gradient for N
+        double[] normal = new double[3];
+        double gradLength = Math.sqrt(grad.x*grad.x + grad.y*grad.y + grad.z*grad.z);
+        VectorMath.setVector(normal, grad.x/gradLength, grad.y/gradLength, grad.z/gradLength);
+        //Make the viewVec point away from the surface
+        double[] viewVector = {-v[0], -v[1], -v[2]};
+        double viewVectorLength = VectorMath.length(viewVector);
+        VectorMath.setVector(viewVector, viewVector[0]/viewVectorLength
+        		, viewVector[1]/viewVectorLength, viewVector[2]/viewVectorLength);
+        //Calculate new color
+        TFColor newColor = new TFColor();
+        double vnProduct = VectorMath.dotproduct(viewVector, normal);
+        if(vnProduct >= 0) {
+        	newColor.a = 0.0;
+        }
+        else {
+        	double common = Ia + kspec*Math.pow(vnProduct, a);
+        	newColor.r = color.r*kdiff*vnProduct + common;
+        	newColor.g = color.g*kdiff*vnProduct + common;
+        	newColor.b = color.b*kdiff*vnProduct + common;
+        	if(newColor.r > 1.0) newColor.r = 1.0;
+        	if(newColor.g > 1.0) newColor.g = 1.0;
+        	if(newColor.b > 1.0) newColor.b = 1.0;
+        }
+    	return newColor;
     }
 
     private void drawBoundingBox(GL2 gl) {

@@ -15,6 +15,10 @@ public class TFColor {
         r = g = b = a = 1.0;
     }
     
+    public static TFColor clone(TFColor c) {
+    	return new TFColor(c.r,c.g,c.b,c.a);
+    }
+    
     public TFColor(double red, double green, double blue, double alpha) {
         r = red;
         g = green;
