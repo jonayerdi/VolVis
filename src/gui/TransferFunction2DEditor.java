@@ -91,6 +91,8 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
         radiusLabel.setText(String.format("%.3f", triangleWidget.radius));
         opacityLabel.setText(String.format("%.1f", triangleWidget.color.a));
         colorButton.setBackground(new Color((float) triangleWidget.color.r, (float) triangleWidget.color.g, (float) triangleWidget.color.b));
+        //System.out.println("Gradient max: " + triangleWidget.gradientMax);
+        //System.out.println("Gradient min: " + triangleWidget.gradientMin);
     }
 
     /**
