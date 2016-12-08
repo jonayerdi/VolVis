@@ -424,6 +424,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             for (int i = 0; i < image.getWidth(); i++) {
                 
             	TFColor voxelColor = TFColor.clone(tfEditor2D.triangleWidget.color);
+            	TFColor voxelColor2 = TFColor.clone(tfEditor2D.triangleWidget.color);
             	double alpha = 1.0;
             	//Slice in the center
             	pixelCoordCenter[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
@@ -446,16 +447,19 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
                     if(volume.isWithinBounds(pixelCoord[0], pixelCoord[1], pixelCoord[2])) {
                     	int val = getVoxel(pixelCoord);
-                        //Get alpha for the current slice
+                    	//Get alpha for the current slice
                         double currentAlpha = getAlphaTfEditor2D(pixelCoord, val);
-                        //Compute total alpha
+                        //We show only the color of the last surface that is visible
+                    	if(shading && currentAlpha>0.0)
+                    		voxelColor = shading(viewVec,pixelCoord,voxelColor2);
+                        //Compute alpha
                         alpha *= 1-currentAlpha;
                     }
             	}
                 
             	//Compute final alpha: alpha = 1 - product(1 - currentAlpha)
-            	alpha = 1 - alpha;
-            	voxelColor.a = alpha;
+                alpha = 1 - alpha;
+                voxelColor.a = alpha;
                 // BufferedImage expects a pixel color packed as ARGB in an int
                 int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
                 int c_red = voxelColor.r <= 1.0 ? (int) Math.floor(voxelColor.r * 255) : 255;
@@ -510,10 +514,12 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         //Calculate new color
         TFColor newColor = new TFColor();
         double vnProduct = VectorMath.dotproduct(viewVector, normal);
-        if(vnProduct >= 0) {
-        	newColor.a = 0.0;
+        if(vnProduct <= 0) {
+        	newColor = TFColor.clone(color);
+        	newColor.a = 0;
         }
         else {
+        	newColor.a = color.a;
         	double common = Ia + kspec*Math.pow(vnProduct, a);
         	newColor.r = color.r*kdiff*vnProduct + common;
         	newColor.g = color.g*kdiff*vnProduct + common;
